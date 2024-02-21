@@ -1,3 +1,6 @@
+# This script transforms raw climate data into climate hazard indices
+# and create visualization of the individual climate hazards distribution
+
 library(viridis)
 library(pacman)
 library (DescTools)
@@ -11,11 +14,16 @@ library(scales)
 library(RColorBrewer)
 library(cartography)
 library (tidyr)
+library (colorspace)
+
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
-HoA <- st_read("./qgis_files/input/world_shape2.geojson")
+#input the word shape file containing country boundaries
+HoA <- st_read("./input_data/spatial_data/world_shape2.geojson")
 
+##############################################
+#defining all functions and plot formating
 theme_MAP <-   theme_bw() +
   theme(title = element_text(size = 15),
         plot.title=element_text(hjust=0.5),
@@ -89,15 +97,16 @@ dominant_hazard <- function(the_stack) {
   }
   ind_max
 }
+#####################################################
 
 ##transforming raw indices to be comparable (normalization and distribution shift)
 #######################################################################
-raw_heat_hist<-raster("./raw_indices/da_n_day_hist.tif")
-raw_heat_ssp<-raster("./raw_indices/da_n_day_ssp.tif")
-raw_drought_hist<-raster("./raw_indices/SPEI_low10_hist.tif")
-raw_drought_ssp<-raster("./raw_indices/SPEI_low10_ssp.tif")
-raw_flood_hist<-raster("./raw_indices/SDII_hist.tif")
-raw_flood_ssp<-raster("./raw_indices/SDII_ssp.tif")
+raw_heat_hist<-raster("./Input_data/spatial_data/da_n_day_hist.tif")
+raw_heat_ssp<-raster("./Input_data/spatial_data/da_n_day_ssp.tif")
+raw_drought_hist<-raster("./Input_data/spatial_data/SPEI_low10_hist.tif")
+raw_drought_ssp<-raster("./Input_data/spatial_data/SPEI_low10_ssp.tif")
+raw_flood_hist<-raster("./Input_data/spatial_data/SDII_hist.tif")
+raw_flood_ssp<-raster("./Input_data/spatial_data/SDII_ssp.tif")
 
 raw_heat_hist<-formatRast(raw_heat_hist)
 raw_heat_ssp<-formatRast(raw_heat_ssp)
@@ -122,7 +131,7 @@ drought_ssp_nrm<- (raw_drought_ssp2-minValue(raw_drought_ssp2))/(maxValue(raw_dr
 flood_ssp_nrm<-(raw_flood_ssp-minValue(raw_flood_ssp))/(maxValue(raw_flood_ssp)-minValue(raw_flood_ssp))
 
 #plotting the distribution of raw values
-tiff('./summary_figures_bis/raw_hazard_distribution_hist.tiff', units="in", width=7, height=4, res=500,compression = 'lzw')
+tiff('./plots/raw_hazard_distribution.tiff', units="in", width=7, height=4, res=500,compression = 'lzw')
 par(mfrow = c(2, 3))
 hist(raw_heat_hist2,xlab='number if days with HI>41°C',ylab='frequency',breaks = "Scott",main='')
 title(main = "heat",adj = 0)
@@ -156,13 +165,14 @@ abline(v=10,col='red',lwd=1.5,lty=2)
 
 dev.off()
 
-#set the threshold to be considered as 'extreme' and 'severe' (class 4  and class 5 hazard), and normalize their values
+#set the threshold to be considered as 'severe' (class 4), and normalize their values
 heat_thresh_nrm_hist<-(30-minValue(raw_heat_hist2))/(maxValue(raw_heat_hist2)-minValue(raw_heat_hist2))
 drought_thresh_nrm_hist<- (1-minValue(raw_drought_hist2))/(maxValue(raw_drought_hist2)-minValue(raw_drought_hist2))
 flood_thresh_nrm_hist<- (10-minValue(raw_flood_hist))/(maxValue(raw_flood_hist)-minValue(raw_flood_hist))
 heat_thresh_nrm_ssp<-(30-minValue(raw_heat_ssp))/(maxValue(raw_heat_ssp)-minValue(raw_heat_ssp))
 drought_thresh_nrm_ssp<- (1-minValue(raw_drought_ssp2))/(maxValue(raw_drought_ssp2)-minValue(raw_drought_ssp2))
 flood_thresh_nrm_ssp<- (10-minValue(raw_flood_ssp))/(maxValue(raw_flood_ssp)-minValue(raw_flood_ssp))
+
 #plotting distribution frequency of the hazards
 theme_frequency<- theme(title = element_text(size = 15),
                         plot.title=element_text(hjust=0.5),
@@ -177,7 +187,7 @@ theme_frequency<- theme(title = element_text(size = 15),
                         legend.key = element_rect(fill = "white"))
 df_freq_hist<- data.frame(x = values(heat_hist_nrm), y = values(drought_hist_nrm),z=values(flood_hist_nrm)) %>%
   gather(key, value)
-tiff('./summary_figures_bis/hazard_distribution_hist.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
+tiff('./plots/hazard_distribution_hist.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
 ggplot(df_freq_hist, aes(value, y=after_stat(density),colour = key)) +
   stat_density(geom="line",position="identity") +
   geom_vline(xintercept = heat_thresh_nrm_hist, linetype="dashed", 
@@ -193,7 +203,7 @@ dev.off()
 
 df_freq_ssp<- data.frame(x = values(heat_ssp_nrm), y = values(drought_ssp_nrm),z=values(flood_ssp_nrm)) %>%
   gather(key, value)
-tiff('./summary_figures_bis/hazard_distribution_ssp.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
+tiff('./plots/hazard_distribution_ssp.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
 ggplot(df_freq_ssp, aes(value,y=after_stat(density),colour = key)) +
   stat_density(geom="line",position="identity") +
   geom_vline(xintercept = heat_thresh_nrm_ssp, linetype="dashed", 
@@ -241,7 +251,7 @@ flood_thresh_sft_ssp<- flood_thresh_nrm_ssp + (0.6-flood_thresh_nrm_ssp)
 #plot the new shifted distributions
 df_freq_hist_sft<- data.frame(x = values(heat_hist_sft), y = values(drought_hist_sft),z=values(flood_hist_sft)) %>%
   gather(key, value)
-tiff('./summary_figures_bis/hazard_distribution_shifted_hist.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
+tiff('./plots/hazard_distribution_shifted_hist.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
 ggplot(df_freq_hist_sft, aes(value,y=after_stat(density),colour = key)) +
   stat_density(geom="line",position="identity") +
   geom_vline(xintercept = heat_thresh_sft_hist, linetype="dashed", 
@@ -257,7 +267,7 @@ dev.off()
 
 df_freq_ssp_sft<- data.frame(x = values(heat_ssp_sft), y = values(drought_ssp_sft),z=values(flood_ssp_sft)) %>%
   gather(key, value)
-tiff('./summary_figures_bis/hazard_distribution_shifted_ssp.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
+tiff('./plots/hazard_distribution_shifted_ssp.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
 ggplot(df_freq_ssp_sft, aes(value,y=after_stat(density),colour = key)) +
   stat_density(geom="line",position="identity") +
   geom_vline(xintercept = heat_thresh_sft_ssp, linetype="dashed", 
@@ -285,17 +295,55 @@ heat_change_index<-heat_ssp_index-heat_hist_index
 drought_change_index<-drought_ssp_index-drought_hist_index
 flood_change_index<-flood_ssp_index-flood_hist_index
 
+#plotting the distribution of the new normalized hazard index
+tiff('./plots/hazard_distribution.tiff', units="in", width=7, height=4, res=500,compression = 'lzw')
+par(mfrow = c(2, 3))
+hist(heat_hist_index,xlab='heat index',ylab='frequency',breaks = "Scott",main='',xlim=c(0,1))
+title(main = "heat",adj = 0)
+abline(v=seq(0.2,0.8,0.2),col='blue',lwd=1.5,lty=2)
+hist(drought_hist_index,xlab='drought index',ylab='frequency',breaks=75,main='',xlim=c(0,1))
+title(main = "drought",adj = 0)
+abline(v=seq(0.2,0.8,0.2),col='blue',lwd=1.5,lty=2)
+mtext("Baseline", side = 3, line = 3, outer =FALSE)
+hist(flood_hist_index,xlab='flood index',ylab='frequency',breaks = "Scott",main='',xlim=c(0,1))
+title(main = "flood",adj = 0)
+abline(v=seq(0.2,0.8,0.2),col='blue',lwd=1.5,lty=2)
+legend('topright',inset=c(-0.1, -0.5), legend=c("class threshold"),
+       col='blue', lty=2, cex=0.8,xpd=TRUE)
 
+hist(heat_ssp_index,xlab='heat index',ylab='frequency',breaks = "Scott",main='',xlim=c(0,1))
+title(main = "heat",adj = 0)
+abline(v=seq(0.2,0.8,0.2),col='blue',lwd=1.5,lty=2)
+hist(drought_ssp_index,xlab='drought index',ylab='frequency',breaks=75,main='',xlim=c(0,1))
+title(main = "drought",adj = 0)
+abline(v=seq(0.2,0.8,0.2),col='blue',lwd=1.5,lty=2)
+mtext("Future", side = 3, line = 3, outer =FALSE)
+hist(flood_ssp_index,xlab='flood index',ylab='frequency',breaks = "Scott",main='',xlim=c(0,1))
+title(main = "flood",adj = 0)
+abline(v=seq(0.2,0.8,0.2),col='blue',lwd=1.5,lty=2)
+
+
+dev.off()
+
+
+#remove Greenland from the maps
+gr<-HoA[which(HoA$gis_name=='Greenland (DNK)'),]
+heat_hist_index<-mask(heat_hist_index,gr,inverse=TRUE)
+heat_ssp_index<-mask(heat_ssp_index,gr,inverse=TRUE)
+drought_hist_index<-mask(drought_hist_index,gr,inverse=TRUE)
+drought_ssp_index<-mask(drought_ssp_index,gr,inverse=TRUE)
+flood_hist_index<-mask(flood_hist_index,gr,inverse=TRUE)
+flood_ssp_index<-mask(flood_ssp_index,gr,inverse=TRUE)
 #write the indices into raster files
-writeRaster(heat_hist_index, filename = ("./qgis_files/output_bis/heat_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(drought_hist_index, filename = ("./qgis_files/output_bis/drought_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(flood_hist_index, filename = ("./qgis_files/output_bis/flood_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(heat_ssp_index, filename = ("./qgis_files/output_bis/heat_ssp_nrm.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(drought_ssp_index, filename = ("./qgis_files/output_bis/drought_ssp_nrm.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(flood_ssp_index, filename = ("./qgis_files/output_bis/flood_ssp_nrm.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(heat_change_index, filename = ("./qgis_files/output_bis/heat_change_nrm.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(drought_change_index, filename = ("./qgis_files/output_bis/drought_change_nrm.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(flood_change_index, filename = ("./qgis_files/output_bis/flood_change_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(heat_hist_index, filename = ("./output_data/spatial_data/heat_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(drought_hist_index, filename = ("./output_data/spatial_data/drought_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(flood_hist_index, filename = ("./output_data/spatial_data/flood_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(heat_ssp_index, filename = ("./output_data/spatial_data/heat_ssp_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(drought_ssp_index, filename = ("./output_data/spatial_data/drought_ssp_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(flood_ssp_index, filename = ("./output_data/spatial_data/flood_ssp_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(heat_change_index, filename = ("./output_data/spatial_data/heat_change_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(drought_change_index, filename = ("./output_data/spatial_data/drought_change_nrm.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(flood_change_index, filename = ("./output_data/spatial_data/flood_change_nrm.tif"), format = "GTiff",overwrite=TRUE)
 
 
 ##visualizing individual climate hazard indices (current, future, change)
@@ -306,16 +354,16 @@ heat_change_index<-heat_ssp_index-heat_hist_index
 heat_change_tbl<-overlayRast(heat_change_index)
 the_min<-min(c(minValue(heat_hist_index),minValue(heat_ssp_index)))
 the_max<-max(c(maxValue(heat_hist_index),maxValue(heat_ssp_index)))
-col_map<-rev(viridis::rocket(27))
-col_map<-col_map[4:(length(col_map)-1)]
+col_map<-rev(sequential_hcl(27, palette = "Reds3"))
+col_map<-col_map[2:length(col_map)]
 color_bar_min<-RoundTo(the_min, multiple = 0.1, FUN = floor)
 color_bar_max<-RoundTo(the_max, multiple = 0.1, FUN = ceiling)
 the_ticks<-seq(color_bar_min,color_bar_max,0.1)
 the_labels<-c('low',rep('',length(the_ticks)-2),'high')
-Visu_raster("./summary_figures_bis/heat_hist_index.tiff",color_bar_min,color_bar_max,"heat hazard - baseline",'heat index',col_map,the_ticks,the_labels,heat_hist_tbl)
-Visu_raster("./summary_figures_bis/heat_ssp_index.tiff",color_bar_min,color_bar_max,"heat hazard - future",'heat index',col_map,the_ticks,the_labels,heat_ssp_tbl)
+Visu_raster("./plots/heat_hist_index.tiff",color_bar_min,color_bar_max,"heat hazard - baseline",'heat index',col_map,the_ticks,the_labels,heat_hist_tbl)
+Visu_raster("./plots/heat_ssp_index.tiff",color_bar_min,color_bar_max,"heat hazard - future",'heat index',col_map,the_ticks,the_labels,heat_ssp_tbl)
 col_map<-rev(brewer.pal(11,'Spectral')) 
-Visu_raster("./summary_figures_bis/heat_change_index.tiff",minValue(heat_change_index),maxValue(heat_change_index),"heat hazard - change",'heat change',col_map,waiver(),waiver(),heat_change_tbl)
+Visu_raster("./plots/heat_change_index.tiff",minValue(heat_change_index),maxValue(heat_change_index),"heat hazard - change",'heat change',col_map,waiver(),waiver(),heat_change_tbl)
 
 ##visualizing drought hazard
 drought_hist_tbl <- overlayRast(drought_hist_index)
@@ -324,15 +372,16 @@ drought_change_index<-drought_ssp_index-drought_hist_index
 drought_change_tbl<-overlayRast(drought_change_index)
 the_min<-min(c(minValue(drought_hist_index),minValue(drought_ssp_index)))
 the_max<-max(c(maxValue(drought_hist_index),maxValue(drought_ssp_index)))
-col_map<-carto.pal('sand.pal',20)
+col_map<-rev(sequential_hcl(40, palette = "YlOrBr"))
+col_map<-c(rep(col_map[1],3),rep(col_map[2],4),rep(col_map[3],5),col_map[4:length(col_map)])
 color_bar_min<-RoundTo(the_min, multiple = 0.1, FUN = floor)
 color_bar_max<-RoundTo(the_max, multiple = 0.1, FUN = ceiling)
 the_ticks<-seq(color_bar_min,color_bar_max,0.1)
 the_labels<-c('low',rep('',length(the_ticks)-2),'high')
-Visu_raster("./summary_figures_bis/drought_hist_index.tiff",color_bar_min,color_bar_max,"drought hazard - baseline",'drought index',col_map,the_ticks,the_labels,drought_hist_tbl)
-Visu_raster("./summary_figures_bis/drought_ssp_index.tiff",color_bar_min,color_bar_max,"drought hazard - future",'drought index',col_map,the_ticks,the_labels,drought_ssp_tbl)
+Visu_raster("./plots/drought_hist_index.tiff",color_bar_min,color_bar_max,"drought hazard - baseline",'drought index',col_map,the_ticks,the_labels,drought_hist_tbl)
+Visu_raster("./plots/drought_ssp_index.tiff",color_bar_min,color_bar_max,"drought hazard - future",'drought index',col_map,the_ticks,the_labels,drought_ssp_tbl)
 col_map<-rev(brewer.pal(11,'Spectral')) 
-Visu_raster("./summary_figures_bis/drought_change_index.tiff",minValue(drought_change_index),maxValue(drought_change_index),"drought hazard - change",'drought change',col_map,waiver(),waiver(),drought_change_tbl)
+Visu_raster("./plots/drought_change_index.tiff",minValue(drought_change_index),maxValue(drought_change_index),"drought hazard - change",'drought change',col_map,waiver(),waiver(),drought_change_tbl)
 
 ##visualizing flood hazard
 flood_hist_tbl <- overlayRast(flood_hist_index)
@@ -341,178 +390,13 @@ flood_change_index<-flood_ssp_index-flood_hist_index
 flood_change_tbl<-overlayRast(flood_change_index)
 the_min<-min(c(minValue(flood_hist_index),minValue(flood_ssp_index)))
 the_max<-max(c(maxValue(flood_hist_index),maxValue(flood_ssp_index)))
-col_map<-carto.pal('blue.pal',20)
+col_map<-rev(sequential_hcl(40, palette = "Blues3"))
+col_map<-c(rep(col_map[1],3),rep(col_map[2],4),rep(col_map[3],5),col_map[4:length(col_map)])
 color_bar_min<-RoundTo(the_min, multiple = 0.1, FUN = floor)
 color_bar_max<-RoundTo(the_max, multiple = 0.1, FUN = ceiling)
 the_ticks<-seq(color_bar_min,color_bar_max,0.1)
 the_labels<-c('low',rep('',length(the_ticks)-2),'high')
-Visu_raster("./summary_figures_bis/flood_hist_index.tiff",color_bar_min,color_bar_max,"flood hazard - baseline",'flood index',col_map,the_ticks,the_labels,flood_hist_tbl)
-Visu_raster("./summary_figures_bis/flood_ssp_index.tiff",color_bar_min,color_bar_max,"flood hazard - future",'flood index',col_map,the_ticks,the_labels,flood_ssp_tbl)
+Visu_raster("./plots/flood_hist_index.tiff",color_bar_min,color_bar_max,"flood hazard - baseline",'flood index',col_map,the_ticks,the_labels,flood_hist_tbl)
+Visu_raster("./plots/flood_ssp_index.tiff",color_bar_min,color_bar_max,"flood hazard - future",'flood index',col_map,the_ticks,the_labels,flood_ssp_tbl)
 col_map<-rev(brewer.pal(11,'Spectral')) 
-Visu_raster("./summary_figures_bis/flood_change_index.tiff",minValue(flood_change_index),maxValue(flood_change_index),"flood hazard - change",'flood change',col_map,waiver(),waiver(),flood_change_tbl)
-
-##############################################################
-##plotting locations of 'severe' hazard
-
-high_heat_hist<-(heat_hist_index>=0.6)
-high_drought_hist<-(drought_hist_index>=0.6)
-high_flood_hist<-(flood_hist_index>=0.6)
-
-high_heat_hist_tbl<-overlayRast(high_heat_hist)
-high_drought_hist_tbl<-overlayRast(high_drought_hist)
-high_flood_hist_tbl<-overlayRast(high_flood_hist)
-
-high_heat_ssp<-(heat_ssp_index>=0.6)
-high_drought_ssp<-(drought_ssp_index>=0.6)
-high_flood_ssp<-(flood_ssp_index>=0.6)
-
-high_heat_ssp_tbl<-overlayRast(high_heat_ssp)
-high_drought_ssp_tbl<-overlayRast(high_drought_ssp)
-high_flood_ssp_tbl<-overlayRast(high_flood_ssp)
-
-my_pals=c('white','black')
-Visu_raster_discrete("./summary_figures_bis/high_heat_hist.tiff","severe heat - baseline",'heat stress',my_pals,c('0','1'),c(0,1),c('','high'),high_heat_hist_tbl)
-Visu_raster_discrete("./summary_figures_bis/high_drought_hist.tiff","severe drought- baseline",'drought intensity',my_pals,c('0','1'),c(0,1),c('','high'),high_drought_hist_tbl)
-Visu_raster_discrete("./summary_figures_bis/high_flood_hist.tiff","severe flooding - baseline",'flood intensity',my_pals,c('0','1'),c(0,1),c('','high'),high_flood_hist_tbl)
-Visu_raster_discrete("./summary_figures_bis/high_heat_ssp.tiff","severe heat - future",'heat stress',my_pals,c('0','1'),c(0,1),c('','high'),high_heat_ssp_tbl)
-Visu_raster_discrete("./summary_figures_bis/high_drought_ssp.tiff","severe drought- future",'drought intensity',my_pals,c('0','1'),c(0,1),c('','high'),high_drought_ssp_tbl)
-Visu_raster_discrete("./summary_figures_bis/high_flood_ssp.tiff","severe flooding - future",'flood intensity',my_pals,c('0','1'),c(0,1),c('','high'),high_flood_ssp_tbl)
-
-##showing all individual severe hazards with their combinations
-high_ind_hist <- high_heat_hist
-high_ind_hist[,]<-0
-high_ind_hist[high_heat_hist==1 & high_drought_hist==0 & high_flood_hist==0]<-1
-high_ind_hist[high_heat_hist==0 & high_drought_hist==1 & high_flood_hist==0]<-2
-high_ind_hist[high_heat_hist==0 & high_drought_hist==0 & high_flood_hist==1]<-3
-high_ind_hist[high_heat_hist==1 & high_drought_hist==1 & high_flood_hist==0]<-4
-high_ind_hist[high_heat_hist==1 & high_drought_hist==0 & high_flood_hist==1]<-5
-high_ind_hist[high_heat_hist==0 & high_drought_hist==1 & high_flood_hist==1]<-6
-high_ind_hist[high_heat_hist==1 & high_drought_hist==1 & high_flood_hist==1]<-7
-high_ind_hist_tbl<-overlayRast(high_ind_hist)
-
-high_ind_ssp <- high_heat_ssp
-high_ind_ssp[,]<-0
-high_ind_ssp[high_heat_ssp==1 & high_drought_ssp==0 & high_flood_ssp==0]<-1
-high_ind_ssp[high_heat_ssp==0 & high_drought_ssp==1 & high_flood_ssp==0]<-2
-high_ind_ssp[high_heat_ssp==0 & high_drought_ssp==0 & high_flood_ssp==1]<-3
-high_ind_ssp[high_heat_ssp==1 & high_drought_ssp==1 & high_flood_ssp==0]<-4
-high_ind_ssp[high_heat_ssp==1 & high_drought_ssp==0 & high_flood_ssp==1]<-5
-high_ind_ssp[high_heat_ssp==0 & high_drought_ssp==1 & high_flood_ssp==1]<-6
-high_ind_ssp[high_heat_ssp==1 & high_drought_ssp==1 & high_flood_ssp==1]<-7
-high_ind_ssp_tbl<-overlayRast(high_ind_ssp)
-
-my_pals=c('0'='white','1'='orangered1','2'='goldenrod3','3'='steelblue3','4'='saddlebrown','5'='olivedrab1','6'='purple','7'='grey')
-
-Visu_raster_discrete("./summary_figures_bis/high_ind_hist.tiff","severe hazard - baseline",'hazard type',my_pals,c('0','1','2','3','4','5','6','7'),c('0','1','2','3','4','5','6','7'),c('','heat','drought','flood','heat and drougth','heat and flood','drought and flood','all'),high_ind_hist_tbl)
-Visu_raster_discrete("./summary_figures_bis/high_ind_ssp.tiff","severe hazard - future",'hazard type',my_pals,c('0','1','2','3','4','5','6','7'),c('0','1','2','3','4','5','6','7'),c('','heat','drought','flood','heat and drougth','heat and flood','drought and flood','all'),high_ind_ssp_tbl)
-
-###Plotting hazard per region
-regional_files<-c('AMERICAs_15m_UNHCR.gpkg',"ASIA_15m_UNHCR.gpkg","East_and_horn_of_Africa_shapefile.gpkg",
-                 "Europe_new.gpkg","MENA_polygon_2.gpkg","Southern_Africa_Ash.gpkg","West_and_central_new.gpkg")
-
-
-all_region<-c('Americas','Asia','East and Horn of Africa','Europe','MENA','Southern Africa','West and Central Africa')
-all_types=c('heat','drought','flood','heat and drougth','heat and flood','drought and flood','all')
-all_colors=c('orangered1','goldenrod3','steelblue3','saddlebrown','olivedrab1','purple','grey')
-##baseline
-percentage=c()
-type=c()
-region=c()
-for (count_region in 1:length(regional_files)){
-  polygon_rst <- st_read(paste0("./qgis_files/input/",regional_files[count_region]))
-  r <- raster::crop(high_ind_hist, polygon_rst)
-  rst_ini <- raster::mask(r, polygon_rst)
-  rst_all_values<-rst_ini
-  rst_all_values[rst_ini>=0]=1
-  rst_all_high<-rst_ini
-  rst_all_high[rst_ini>=1]=1
-  all_type_high<-cellStats(rst_all_high, stat='sum', na.rm=TRUE)/cellStats(rst_all_values, stat='sum', na.rm=TRUE)
-  for (type_ind in (1:length(all_types))){
-    type_rast<-rst_ini
-    type_rast[rst_ini!=type_ind]=0
-    type_rast[type_rast==type_ind]=1
-    proportion_type<-cellStats(type_rast, stat='sum', na.rm=TRUE)/cellStats(rst_all_values, stat='sum', na.rm=TRUE)
-    
-    percentage<-c(percentage,proportion_type)
-    type<-c(type,all_types[type_ind])
-    region<-c(region,all_region[count_region])
-  }
-}
-all_colors=c('heat'='orangered1','drought'='goldenrod3','flood'='steelblue3','heat and drougth'='saddlebrown','heat and flood'='olivedrab1','drought and flood'='purple','all'='grey')
-the_df<-data.frame(percentage,type,region)
-the_df$region<-factor(the_df$region)
-the_df2<-the_df[the_df$percentage!=0,]
-tiff('./summary_figures_bis/hazard_per_region_hist.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
-ggplot(the_df,aes(x=region,y=percentage,fill=type))+
-  geom_bar(stat='identity')+
-  labs(y='Percentage of area under severe hazard')+
-  #scale_fill_manual(values=all_colors,breaks=all_types,labels=all_types)+
-  scale_fill_manual(values=all_colors,breaks=unique(the_df2$type),labels=all_types[match(unique(the_df2$type),all_types)])+
-  theme_bw()+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),
-        panel.background=element_blank())+
-  ylim(0,1)+
-  theme(axis.text.x=element_text(angle=90,vjust=0.5,hjust=1))+
-  ggtitle('severe hazard - baseline')
-dev.off()
-
-##future
-percentage=c()
-type=c()
-region=c()
-for (count_region in 1:length(regional_files)){
-  polygon_rst <- st_read(paste0("./qgis_files/input/",regional_files[count_region]))
-  r <- raster::crop(high_ind_ssp, polygon_rst)
-  rst_ini <- raster::mask(r, polygon_rst)
-  rst_all_values<-rst_ini
-  rst_all_values[rst_ini>=0]=1
-  rst_all_high<-rst_ini
-  rst_all_high[rst_ini>=1]=1
-  all_type_high<-cellStats(rst_all_high, stat='sum', na.rm=TRUE)/cellStats(rst_all_values, stat='sum', na.rm=TRUE)
-  for (type_ind in (1:length(all_types))){
-    type_rast<-rst_ini
-    type_rast[rst_ini!=type_ind]=0
-    type_rast[type_rast==type_ind]=1
-    proportion_type<-cellStats(type_rast, stat='sum', na.rm=TRUE)/cellStats(rst_all_values, stat='sum', na.rm=TRUE)
-    
-    percentage<-c(percentage,proportion_type)
-    type<-c(type,all_types[type_ind])
-    region<-c(region,all_region[count_region])
-  }
-}
-all_colors=c('heat'='orangered1','drought'='goldenrod3','flood'='steelblue3','heat and drougth'='saddlebrown','heat and flood'='olivedrab1','drought and flood'='purple','all'='grey')
-the_df<-data.frame(percentage,type,region)
-the_df$region<-factor(the_df$region)
-the_df2<-the_df[the_df$percentage!=0,]
-tiff('./summary_figures_bis/hazard_per_region_ssp.tiff', units="in", width=6, height=4, res=500,compression = 'lzw')
-ggplot(the_df,aes(x=region,y=percentage,fill=type))+
-  geom_bar(stat='identity')+
-  labs(y='Percentage of area under severe hazard')+
-  #scale_fill_manual(values=all_colors,breaks=all_types,labels=all_types)+
-  scale_fill_manual(values=all_colors,breaks=unique(the_df2$type),labels=all_types[match(unique(the_df2$type),all_types)])+
-  theme_bw()+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),
-        panel.background=element_blank())+
-  ylim(0,1)+
-  theme(axis.text.x=element_text(angle=90,vjust=0.5,hjust=1))+
-  ggtitle('severe hazard - future')
-dev.off()
-
-
-#dominant hazard per point locations
-my_pals=c('orangered1','goldenrod3','steelblue3')
-my_labels=c('heat','drought','flood')
-#baseline
-hist_stack<-stack(heat_hist_index,drought_hist_index,flood_hist_index)
-max_ind_hist <- calc(hist_stack,dominant_hazard)
-max_ind_hist_tbl<-overlayRast(max_ind_hist)
-Visu_raster_discrete('./summary_figures_bis/common_hazard_hist.tiff','most common hazard - baseline','hazard type',my_pals,c('1','2','3'),c('1','2','3'),my_labels,max_ind_hist_tbl)
-#future
-ssp_stack<-stack(heat_ssp_index,drought_ssp_index,flood_ssp_index)
-max_ind_ssp<- calc(ssp_stack,dominant_hazard)
-max_ind_ssp_tbl<-overlayRast(max_ind_ssp)
-Visu_raster_discrete('./summary_figures_bis/common_hazard_ssp.tiff','most common hazard - future','hazard type',my_pals,c('1','2','3'),c('1','2','3'),my_labels,max_ind_ssp_tbl)
-
-
-
-
+Visu_raster("./plots/flood_change_index.tiff",minValue(flood_change_index),maxValue(flood_change_index),"flood hazard - change",'flood change',col_map,waiver(),waiver(),flood_change_tbl)
