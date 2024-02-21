@@ -23,7 +23,8 @@ setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 HoA <- st_read("./input_data/spatial_data/world_shape2.geojson")
 
 ##############################################
-#defining all functions and plot formating
+#defining all functions and plot formatting
+
 theme_MAP <-   theme_bw() +
   theme(title = element_text(size = 15),
         plot.title=element_text(hjust=0.5),
