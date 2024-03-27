@@ -187,8 +187,8 @@ Visu_raster_discrete("./plots/composite_hist_class_avrg.tiff","composite hazard 
 Visu_raster_discrete("./plots/composite_ssp_class_avrg.tiff","composite hazard - future",'hazard class',my_pals,c('1','2','3','4','5'),c('1','2','3','4','5'),c('low','moderate','high','severe','extreme'),ssp_class_avrg_tbl)
 
 #saving the class per country maps into rasters for future use
-writeRaster(composite_hist_class, filename = ("./output_data/spatial_data/composite_hist_class_avrg.tif"), format = "GTiff",overwrite=TRUE)
-writeRaster(composite_ssp_class, filename = ("./output_data/spatial_data/composite_ssp_class_avrg.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(hist_class_avrg, filename = ("./output_data/spatial_data/composite_hist_class_avrg.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(ssp_class_avrg, filename = ("./output_data/spatial_data/composite_ssp_class_avrg.tif"), format = "GTiff",overwrite=TRUE)
 
 
 #######################  part 2: investigate on the individual hazard that is mostly driving the high compounding effects 
