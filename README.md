@@ -16,4 +16,5 @@ In order to replicate the analytics of the manuscript, the codes should be execu
 
 (3) The script named 'FDSP_exposure_compoud.R' is doing the statistical analyses with regard to the number of FDSP within each class of compound climate hazard, both with and without governance. It needs to be excecuted after 'composite_hazard_build.R'. Figures output from the script are: Fig. 1, Fig. 2, Fig. 3.
 
-(4) The scrip named 'FDSP_exposre_individual_hazards.R' is doing the statistical analyses with regard to the number of FDSP within each class of individual climate hazards (heat, drought and flood). It needs to be excecuted after 'composite_hazard_build.R'. Figures output from this script are: Fig. 4A and Fig. 5A.  
+(4) The scrip named 'FDSP_exposre_individual_hazards.R' is doing the statistical analyses with regard to the number of FDSP within each class of individual climate hazards (heat, drought and flood). It needs to be excecuted after 'composite_hazard_build.R'. Figures output from this script are: Fig. 4A and Fig. 5A.
+(5) To generate outputs corresponding to SSP126, the codes with the suffix 'ssp126' should be run following the same order as above. These codes are located in the 'ssp126' branch in here.
