@@ -179,8 +179,10 @@ for (i in 1:nrow(PoC_data)){
     flood_class_ssp<-c(flood_class_ssp,NA)
   }
 }
-#PoC_data<-cbind(PoC_data,comp_class_hist,comp_class_ssp,heat_class_hist,heat_class_ssp,drought_class_hist,drought_class_ssp,flood_class_hist,flood_class_ssp)
-PoC_data<-readRDS('./Outputs/PoC_data_individual.Rds')
+PoC_data<-cbind(PoC_data,comp_class_hist,comp_class_ssp,heat_class_hist,heat_class_ssp,drought_class_hist,drought_class_ssp,flood_class_hist,flood_class_ssp)
+saveRDS(PoC_data,'./output_data/FDSP_population_data_frame_ind_hazard.Rds')
+PoC_data<-readRDS('./output_data/FDSP_population_data_frame_ind_hazard.Rds')
+
 
 #Plot PoC numbers per hazard class
 exposure_hist<-data.frame(hazard.class=rep(1:5,4),PoC.number=NA,hazard=c(rep('heat',5),rep('drought',5),rep('flood',5),rep('compound',5)))
