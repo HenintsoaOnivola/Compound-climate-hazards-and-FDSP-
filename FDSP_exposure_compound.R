@@ -1,25 +1,17 @@
 #This script contain the statistical analyses with respect to the exposure of FDSP to each class of climate hazards
 #with and without governance taken into account
 
-library(viridis)
-library(pacman)
-library (DescTools)
-library(raster)
-library(rgdal)
-library(tidyverse)
-library(tibble)
-library(ggplot2)
-library(sf)
-library(scales)
-library(RColorBrewer)
-library(cartography)
-library (tidyr)
-library (ggrepel)
-library (spatstat)
-library (maptools)
-library (readxl)
-library (readr)
-library (ggnewscale)
+packages <- c("viridis", "pacman", "DescTools", "raster", "rgdal", "tidyverse", "tibble", "ggplot2", "sf", "scales",
+              "RColorBrewer","cartography", "tidyr", "ggrepel",'spatstat','maptools','readxl','readr','ggnewscale')
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+invisible(lapply(packages, library, character.only = TRUE))
+
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
