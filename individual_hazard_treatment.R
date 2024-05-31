@@ -1,21 +1,16 @@
 # This script transforms raw climate data into climate hazard indices
 # and create visualization of the individual climate hazards distribution
 
-library(viridis)
-library(pacman)
-library (DescTools)
-library(raster)
-library(rgdal)
-library(tidyverse)
-library(tibble)
-library(ggplot2)
-library(sf)
-library(scales)
-library(RColorBrewer)
-library(cartography)
-library (tidyr)
-library (colorspace)
+packages <- c("viridis", "pacman", "DescTools", "raster", "rgdal", "tidyverse", "tibble", "ggplot2", "sf", "scales", "RColorBrewer",
+              "cartography", "tidyr", "colorspace")
 
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+invisible(lapply(packages, library, character.only = TRUE))
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
