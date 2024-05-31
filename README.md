@@ -6,7 +6,7 @@ by Craparo, A.C.W., Minoarivelo, O. H., Basel, A.M., Nguyen, K.T., Dao., H., Bir
 The codes were run through RStudio 2023.06.1 using R version 4.3.1 on a device with a Windows 11 64-bit OS, an Intel Core i7-10510U @1.80GHz 2.30 GHz processor and a 16Gb RAM.
 The processing time for all codes to run is about 30 minutes.
 
-All raw input data (climate, FDSP population data and location) are available in the 'Input' folder.
+All raw input data (climate, FDSP population data and location) are available in the 'input_data' folder.
 
 In order to replicate the analytics of the manuscript, the codes should be executed in the following order:
 
