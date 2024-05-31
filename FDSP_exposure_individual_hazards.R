@@ -1,23 +1,15 @@
 #This script looks at the exposure of FDSP population to each individual hazard and their specific class
 
-library(viridis)
-library(pacman)
-library (DescTools)
-library(raster)
-library(rgdal)
-library(tidyverse)
-library(tibble)
-library(ggplot2)
-library(sf)
-library(scales)
-library(RColorBrewer)
-library (tidyr)
-library (spatstat)
-library (maptools)
-library (readxl)
-library (readr)
-library (reshape2)
-library(cowplot)
+packages <- c("viridis", "pacman", "DescTools", "raster", "rgdal", "tidyverse", "tibble", "ggplot2", "sf", "scales",
+              "RColorBrewer", "tidyr", "spatstat",'maptools','readxl','readr','reshape2','cowplot')
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+invisible(lapply(packages, library, character.only = TRUE))
 
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
