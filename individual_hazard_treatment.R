@@ -62,7 +62,7 @@ Visu_raster<-function (output_name,the_min,the_max,title,bar_title,color_palette
     positive_val=all_val[all_val>0]
     val_after_zero=positive_val[1]
     scaling_colormap<-c(the_min,0,seq(val_after_zero,the_max,(the_max-val_after_zero)/(length(my_cols)-3)))
-    res<-rescale(scaling_colormap)
+    res<-scales::rescale(scaling_colormap)
   }
   tiff(output_name, units="in", width=10, height=6, res=500,compression = 'lzw')
   print(ggplot() +
