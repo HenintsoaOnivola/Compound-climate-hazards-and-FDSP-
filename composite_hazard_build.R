@@ -1,20 +1,16 @@
 # This script has two parts (1) building the composite hazard index based on the individual hazards indices
 # (2) investigate on the individual hazard that is mostly driving the high compounding effects and how these hazards are distributed over regions 
 
-library(viridis)
-library(pacman)
-library (DescTools)
-library(raster)
-library(rgdal)
-library(tidyverse)
-library(tibble)
-library(ggplot2)
-library(sf)
-library(scales)
-library(RColorBrewer)
-library(cartography)
-library (tidyr)
-library (openxlsx)
+packages <- c("viridis", "pacman", "DescTools", "raster", "rgdal", "tidyverse", "tibble", "ggplot2", "sf", "scales",
+              "RColorBrewer","cartography", "tidyr", "openxlsx")
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+invisible(lapply(packages, library, character.only = TRUE))
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
