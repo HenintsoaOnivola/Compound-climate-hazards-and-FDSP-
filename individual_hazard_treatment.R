@@ -125,6 +125,8 @@ raw_drought_ssp2<- -raw_drought_ssp
 drought_ssp_nrm<- (raw_drought_ssp2-minValue(raw_drought_ssp2))/(maxValue(raw_drought_ssp2)-minValue(raw_drought_ssp2))
 flood_ssp_nrm<-(raw_flood_ssp-minValue(raw_flood_ssp))/(maxValue(raw_flood_ssp)-minValue(raw_flood_ssp))
 
+dir.create('plots')
+
 #plotting the distribution of raw values
 tiff('./plots/raw_hazard_distribution.tiff', units="in", width=7, height=4, res=500,compression = 'lzw')
 par(mfrow = c(2, 3))
@@ -329,7 +331,10 @@ drought_hist_index<-mask(drought_hist_index,gr,inverse=TRUE)
 drought_ssp_index<-mask(drought_ssp_index,gr,inverse=TRUE)
 flood_hist_index<-mask(flood_hist_index,gr,inverse=TRUE)
 flood_ssp_index<-mask(flood_ssp_index,gr,inverse=TRUE)
+
 #write the indices into raster files
+dir.create('output_data')
+dir.create('./output_data/spatial_data')
 writeRaster(heat_hist_index, filename = ("./output_data/spatial_data/heat_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
 writeRaster(drought_hist_index, filename = ("./output_data/spatial_data/drought_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
 writeRaster(flood_hist_index, filename = ("./output_data/spatial_data/flood_hist_nrm.tif"), format = "GTiff",overwrite=TRUE)
