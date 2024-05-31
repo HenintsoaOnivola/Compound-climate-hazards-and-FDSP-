@@ -168,6 +168,9 @@ col_map<-rev(brewer.pal(11,'Spectral'))
 Visu_raster("./plots/composite_hist_avrg.tiff",0,1,"composite hazard - baseline",'composite index',col_map,waiver(),waiver(),hist_avrg_tbl)
 Visu_raster("./plots/composite_ssp_avrg.tiff",0,1,"composite hazard - future",'composite index',col_map,waiver(),waiver(),ssp_avrg_tbl)
 
+writeRaster(hist_avrg, filename = ("./output_data/spatial_data/composite_hist_avrg.tif"), format = "GTiff",overwrite=TRUE)
+writeRaster(ssp_avrg, filename = ("./output_data/spatial_data/composite_ssp_avrg.tif"), format = "GTiff",overwrite=TRUE)
+
 #classify each country within the 5 categories
 brk  <- seq(0,1,0.2)
 hist_class_avrg <- raster::cut(hist_avrg, breaks=brk)
