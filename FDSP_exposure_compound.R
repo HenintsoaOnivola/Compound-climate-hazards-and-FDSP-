@@ -214,7 +214,7 @@ PoC_points$new_col<-factor(PoC_points$new_col)
 #visualize the climate hazard class maps, as well as the new risk class maps with location of FDSP
 spect_pal<-rev(brewer.pal(5,'Spectral'))
 my_pals=c('1'=spect_pal[1],'2'=spect_pal[2],'3'=spect_pal[3],'4'=spect_pal[4],'5'=spect_pal[5])
-
+dir.create('./plots/with_FDSP')
 composite_hist_class_tbl<-overlayRast(composite_hist_class)
 Visu_raster_discrete_with_points("./plots/with_FDSP/composite_hist_class_with_FDSP.tiff","",'Hazard class',my_pals,c('1','2','3','4','5'),c('1','2','3','4','5'),c('low','moderate','high','severe','extreme'),composite_hist_class_tbl,PoC_points)
 
