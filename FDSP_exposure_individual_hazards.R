@@ -183,8 +183,7 @@ PoC_data<-cbind(PoC_data,comp_class_hist,comp_class_ssp,heat_class_hist,heat_cla
 saveRDS(PoC_data,'./output_data/FDSP_population_data_frame_ind_hazard.Rds')
 PoC_data<-readRDS('./output_data/FDSP_population_data_frame_ind_hazard.Rds')
 
-
-#Plot PoC numbers per hazard class
+#Plot FDSP numbers per hazard class
 exposure_hist<-data.frame(hazard.class=rep(1:5,4),PoC.number=NA,hazard=c(rep('heat',5),rep('drought',5),rep('flood',5),rep('compound',5)))
 exposure_ssp<-data.frame(hazard.class=rep(1:5,4),PoC.number=NA,hazard=c(rep('heat',5),rep('drought',5),rep('flood',5),rep('compound',5)))
 for (h in c('heat','drought','flood','compound')){
@@ -210,10 +209,10 @@ exposure_hist$hazard.class<-factor(exposure_hist$hazard.class)
 the_df<-exposure_hist[exposure_hist$PoC.number!=0,]
 the_df$PoC.number<-the_df$PoC.number/1e6
 
-tiff('./summary_figures_bis/exposure_per_class.tiff', units="in", width=8, height=4, res=500,compression = 'lzw')
+tiff('./plots/with_FDSP/exposure_per_class.tiff', units="in", width=8, height=4, res=500,compression = 'lzw')
 ggplot(the_df,aes(x=hazard,y=PoC.number,fill=hazard.class))+
   geom_bar(stat='identity',color = "black",size=0.2,position = position_stack(reverse = TRUE))+
-  labs(y='PoC number (millions)')+
+  labs(y='FDSP number (millions)')+
   scale_fill_manual(values=all_colors,name='hazard class')+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),
@@ -227,10 +226,10 @@ exposure_ssp$hazard.class<-factor(exposure_ssp$hazard.class)
 the_df2<-exposure_ssp[exposure_ssp$PoC.number!=0,]
 the_df2$PoC.number<-the_df2$PoC.number/1e6
 
-tiff('./summary_figures_bis/exposure_per_class_ssp.tiff', units="in", width=8, height=4, res=500,compression = 'lzw')
+tiff('./plots/with_FDSP/exposure_per_class_ssp.tiff', units="in", width=8, height=4, res=500,compression = 'lzw')
 ggplot(the_df2,aes(x=hazard,y=PoC.number,fill=hazard.class))+
   geom_bar(stat='identity',color = "black",size=0.2,position = position_stack(reverse = TRUE))+
-  labs(y='PoC number (millions)')+
+  labs(y='FDSP number (millions)')+
   scale_fill_manual(values=all_colors,name='hazard class')+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),
@@ -253,22 +252,22 @@ ssp_df$hazard<-factor(ssp_df$hazard,levels=c('heat','drought','flood'))
 my_pals=c('heat'='orangered1','drought'='goldenrod3','flood'='steelblue3')
 
 p1<-ggplot() + geom_bar(data = hist_df, aes(x = hazard.class, y = PoC.number, fill = hazard), position = "dodge", stat = "identity",width=0.8)+
-  labs(x='hazard class', y='PoC number (million)')+
+  labs(x='hazard class', y='FSDSP number (million)')+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),panel.background=element_blank())+
   theme(axis.text=element_text(size=12),axis.title = element_text(size = 12),legend.text = element_text(size = 9),legend.title = element_text(size = 12),legend.key.size = unit(.5, "cm"),
         legend.position = c(0.9, 0.8),axis.text.y = element_text(angle=45,vjust = 0.5, hjust=0.5))+
   scale_x_discrete(labels=c('low','moderate','high','severe','extreme'),breaks=c("1","2","3",'4','5'))+
   scale_fill_manual( values = my_pals)
-  
+
 p1<-p1+coord_flip()
-tiff('./summary_figures_bis/bar_exposure_per_class_hist.tiff',units="in", width=7, height=4, res=500,compression = 'lzw')
+tiff('./plots/with_FDSP/bar_exposure_per_class_hist.tiff',units="in", width=7, height=4, res=500,compression = 'lzw')
 p1
 dev.off()   
 
 
 p2<-ggplot() + geom_bar(data = ssp_df, aes(x = hazard.class, y = PoC.number, fill = hazard), position = "dodge", stat = "identity",width=0.8)+
-  labs(x='hazard class', y='PoC number (million)')+
+  labs(x='hazard class', y='FDSP number (million)')+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),panel.background=element_blank())+
   theme(axis.text=element_text(size=12),axis.title = element_text(size = 12),legend.text = element_text(size = 9),legend.title = element_text(size = 12),legend.key.size = unit(.5, "cm"),
@@ -276,16 +275,15 @@ p2<-ggplot() + geom_bar(data = ssp_df, aes(x = hazard.class, y = PoC.number, fil
   scale_x_discrete(labels=c('low','moderate','high','severe','extreme'),breaks=c("1","2","3",'4','5'))+
   scale_fill_manual( values = my_pals)
 p2<-p2+coord_flip()
-tiff('./summary_figures_bis/bar_exposure_per_class_ssp.tiff',units="in", width=7, height=4, res=500,compression = 'lzw')
+tiff('./plots/with_FDSP/bar_exposure_per_class_ssp.tiff',units="in", width=7, height=4, res=500,compression = 'lzw')
 p2
 dev.off() 
 
-tiff('./summary_figures_bis/bar_exposure_per_class.tiff',units="in", width=7, height=4, res=500,compression = 'lzw')
+tiff('./plots/with_FDSP/bar_exposure_per_class2.tiff',units="in", width=7, height=4, res=500,compression = 'lzw')
 prow<-plot_grid(p1+theme(legend.position="none"),p2+theme(legend.position="none"),labels=c('A','B'),align = 'vh',hjust = -1,nrow = 1)
 legend <- get_legend(p1 + theme(legend.box.margin = margin(0, 0, 0, 12)))
 plot_grid(prow, legend, rel_widths = c(2.7, .4))
 dev.off()
-
 
 
 
