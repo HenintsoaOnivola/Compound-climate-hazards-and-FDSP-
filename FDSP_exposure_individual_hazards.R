@@ -102,6 +102,10 @@ PoC_data<-aggregate(PoC_number~(country_code+country_name),data=PoC_data,FUN=sum
 
 #add hazard class for each country within the FDSP data 
 #########################
+
+hist_class_avrg<-raster("./output_data/spatial_data/composite_hist_class_avrg.tif")
+ssp_class_avrg<-raster("./output_data/spatial_data/composite_ssp_class_avrg.tif")
+
 comp_class_hist<-c()
 comp_class_ssp<-c()
 heat_class_hist<-c()
